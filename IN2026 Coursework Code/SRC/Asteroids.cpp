@@ -12,6 +12,8 @@
 #include "GUILabel.h"
 #include "Explosion.h"
 
+bool gameStarted = false;
+
 // PUBLIC INSTANCE CONSTRUCTORS ///////////////////////////////////////////////
 
 /** Constructor. Takes arguments from command line, just in case. */
@@ -59,9 +61,9 @@ void Asteroids::Start()
 	Animation *spaceship_anim = AnimationManager::GetInstance().CreateAnimationFromFile("spaceship", 128, 128, 128, 128, "spaceship_fs.png");
 
 	// Create a spaceship and add it to the world
-	mGameWorld->AddObject(CreateSpaceship());
+	//mGameWorld->AddObject(CreateSpaceship());<<<<<<<<<<<<<<<<<<<<<<<<<<
 	// Create some asteroids and add them to the world
-	CreateAsteroids(10);
+	//CreateAsteroids(10); <<<<<<<<<<<<<<<<<<<<<
 
 	//Create the GUI
 	CreateGUI();
@@ -87,6 +89,19 @@ void Asteroids::Stop()
 
 void Asteroids::OnKeyPressed(uchar key, int x, int y)
 {
+	if (!gameStarted && key == 13)
+	{
+		gameStarted = true;
+
+		mGameWorld->AddObject(CreateSpaceship());
+		CreateAsteroids(10);
+
+		mStartLabel->SetVisible(false);
+		return;
+	}
+
+	if (!gameStarted) return;
+
 	switch (key)
 	{
 	case ' ':
@@ -101,6 +116,7 @@ void Asteroids::OnKeyReleased(uchar key, int x, int y) {}
 
 void Asteroids::OnSpecialKeyPressed(int key, int x, int y)
 {
+	if (!gameStarted) return;
 	switch (key)
 	{
 	// If up arrow key is pressed start applying forward thrust
@@ -116,6 +132,7 @@ void Asteroids::OnSpecialKeyPressed(int key, int x, int y)
 
 void Asteroids::OnSpecialKeyReleased(int key, int x, int y)
 {
+	if (!gameStarted) return;
 	switch (key)
 	{
 	// If up arrow key is released stop applying forward thrust
@@ -134,6 +151,7 @@ void Asteroids::OnSpecialKeyReleased(int key, int x, int y)
 
 void Asteroids::OnObjectRemoved(GameWorld* world, shared_ptr<GameObject> object)
 {
+	if (!gameStarted) return;
 	if (object->GetType() == GameObjectType("Asteroid"))
 	{
 		shared_ptr<GameObject> explosion = CreateExplosion();
@@ -152,6 +170,7 @@ void Asteroids::OnObjectRemoved(GameWorld* world, shared_ptr<GameObject> object)
 
 void Asteroids::OnTimer(int value)
 {
+	if (!gameStarted) return; 
 	if (value == CREATE_NEW_PLAYER)
 	{
 		mSpaceship->Reset();
@@ -243,6 +262,14 @@ void Asteroids::CreateGUI()
 	shared_ptr<GUIComponent> game_over_component
 		= static_pointer_cast<GUIComponent>(mGameOverLabel);
 	mGameDisplay->GetContainer()->AddComponent(game_over_component, GLVector2f(0.5f, 0.5f));
+
+	mStartLabel = make_shared<GUILabel>("ENTER TO START");
+	mStartLabel->SetHorizontalAlignment(GUIComponent::GUI_HALIGN_CENTER);
+	mStartLabel->SetVerticalAlignment(GUIComponent::GUI_VALIGN_MIDDLE);
+
+		shared_ptr<GUIComponent> start_component = static_pointer_cast<GUIComponent>(mStartLabel);
+
+	mGameDisplay->GetContainer()->AddComponent(start_component, GLVector2f(0.5f, 0.6f));
 
 }
 
