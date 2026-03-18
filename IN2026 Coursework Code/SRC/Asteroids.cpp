@@ -67,6 +67,7 @@ void Asteroids::Start()
 
 	//Create the GUI
 	CreateGUI();
+	CreateAsteroids(5);
 
 	// Add a player (watcher) to the game world
 	mGameWorld->AddListener(&mPlayer);
@@ -96,7 +97,10 @@ void Asteroids::OnKeyPressed(uchar key, int x, int y)
 		mGameWorld->AddObject(CreateSpaceship());
 		CreateAsteroids(10);
 
+		mScoreLabel->SetVisible(true);
+		mLivesLabel->SetVisible(true);
 		mStartLabel->SetVisible(false);
+
 		return;
 	}
 
@@ -270,7 +274,8 @@ void Asteroids::CreateGUI()
 		shared_ptr<GUIComponent> start_component = static_pointer_cast<GUIComponent>(mStartLabel);
 
 	mGameDisplay->GetContainer()->AddComponent(start_component, GLVector2f(0.5f, 0.6f));
-
+	mScoreLabel->SetVisible(false);
+	mLivesLabel->SetVisible(false);
 }
 
 void Asteroids::OnScoreChanged(int score)
