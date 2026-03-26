@@ -11,6 +11,10 @@
 #include "BoundingSphere.h"
 #include "GUILabel.h"
 #include "Explosion.h"
+#include <iostream>
+#include <algorithm>
+#include <vector>
+#include "HighScore.h"
 
 bool gameStarted = false;
 
@@ -90,9 +94,44 @@ void Asteroids::Stop()
 
 void Asteroids::OnKeyPressed(uchar key, int x, int y)
 {
+	if (enteringName)
+	{
+		if (key == 13)
+		{
+			enteringName = false;
+
+			int finalScore = mScoreKeeper.FireScoreChanged();
+			highScores.push_back(HighScore(currentName, finalScore));
+
+			std::sort(highScores.begin(), highScores.end(),
+				[](HighScore a, HighScore b)
+				{
+					return a.score > b.score;
+				});
+
+			ShowLeaderboard();
+			return;
+		}
+
+		if (key == 8 && currentName.length() > 0)
+		{
+			currentName.pop_back();
+		}
+		else if (key >= 32 && key <= 126)
+		{
+			currentName += key;
+		}
+
+		mEnterNameLabel->SetText("Enter Name: " + currentName);
+		return;
+	}
+
+
 	if (!gameStarted && key == 13)
 	{
 		gameStarted = true;
+
+		mGameDisplay->GetContainer()->RemoveComponent(mStartLabel);
 
 		mGameWorld->AddObject(CreateSpaceship());
 		CreateAsteroids(10);
@@ -101,6 +140,14 @@ void Asteroids::OnKeyPressed(uchar key, int x, int y)
 		mLivesLabel->SetVisible(true);
 		mStartLabel->SetVisible(false);
 
+		return;
+	}
+
+	if (!enteringName && key == 'r')
+	{
+		gameStarted = false;
+		Stop();
+		Start();
 		return;
 	}
 
@@ -191,6 +238,18 @@ void Asteroids::OnTimer(int value)
 	if (value == SHOW_GAME_OVER)
 	{
 		mGameOverLabel->SetVisible(true);
+
+		enteringName = true;
+		currentName = "";
+
+		mEnterNameLabel = make_shared<GUILabel>("Enter Name: ");
+		mEnterNameLabel->SetHorizontalAlignment(GUIComponent::GUI_HALIGN_CENTER);
+		mEnterNameLabel->SetVerticalAlignment(GUIComponent::GUI_VALIGN_MIDDLE);
+
+		shared_ptr<GUIComponent> comp =
+			static_pointer_cast<GUIComponent>(mEnterNameLabel);
+
+		mGameDisplay->GetContainer()->AddComponent(comp, GLVector2f(0.5f, 0.4f));
 	}
 
 }
@@ -302,14 +361,35 @@ void Asteroids::OnPlayerKilled(int lives_left)
 	std::string lives_msg = msg_stream.str();
 	mLivesLabel->SetText(lives_msg);
 
-	if (lives_left > 0) 
-	{ 
-		SetTimer(1000, CREATE_NEW_PLAYER); 
+	if (lives_left > 0)
+	{
+		SetTimer(1000, CREATE_NEW_PLAYER);
 	}
 	else
 	{
 		SetTimer(500, SHOW_GAME_OVER);
 	}
+}
+
+void Asteroids::ShowLeaderboard()
+{
+	std::string text = "LEADERBOARD\n";
+
+	for (size_t i = 0; i < highScores.size() && i < 5; i++)
+	{
+		text += highScores[i].name + " - " + std::to_string(highScores[i].score) + "\n";
+	}
+
+	text += "\nPress R to Restart";
+
+	mLeaderboardLabel = make_shared<GUILabel>(text);
+	mLeaderboardLabel->SetHorizontalAlignment(GUIComponent::GUI_HALIGN_CENTER);
+	mLeaderboardLabel->SetVerticalAlignment(GUIComponent::GUI_VALIGN_MIDDLE);
+
+	shared_ptr<GUIComponent> comp =
+		static_pointer_cast<GUIComponent>(mLeaderboardLabel);
+
+	mGameDisplay->GetContainer()->AddComponent(comp, GLVector2f(0.5f, 0.6f));
 }
 
 shared_ptr<GameObject> Asteroids::CreateExplosion()

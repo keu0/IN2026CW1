@@ -9,6 +9,8 @@
 #include "ScoreKeeper.h"
 #include "Player.h"
 #include "IPlayerListener.h"
+#include <vector>
+#include "HighScore.h"
 
 class GameObject;
 class Spaceship;
@@ -54,6 +56,12 @@ private:
 	shared_ptr<GUILabel> mGameOverLabel;
 	shared_ptr<GUILabel> mStartLabel;
 
+	shared_ptr<GUILabel> mEnterNameLabel;
+	shared_ptr<GUILabel> mLeaderboardLabel;
+
+	bool enteringName = false;
+	std::string currentName = "";
+
 	uint mLevel;
 	uint mAsteroidCount;
 
@@ -62,6 +70,7 @@ private:
 	void CreateGUI();
 	void CreateAsteroids(const uint num_asteroids);
 	shared_ptr<GameObject> CreateExplosion();
+	void ShowLeaderboard();
 	
 	const static uint SHOW_GAME_OVER = 0;
 	const static uint START_NEXT_LEVEL = 1;
@@ -69,6 +78,8 @@ private:
 
 	ScoreKeeper mScoreKeeper;
 	Player mPlayer;
+
+	std::vector<HighScore> highScores;
 };
 
 #endif
