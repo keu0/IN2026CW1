@@ -62,6 +62,8 @@ private:
 	bool enteringName = false;
 	std::string currentName = "";
 
+	bool gameOver = false;
+
 	uint mLevel;
 	uint mAsteroidCount;
 
