@@ -17,6 +17,7 @@
 #include "HighScore.h"
 
 bool gameStarted = false;
+bool showingLeaderboard = false;
 
 // PUBLIC INSTANCE CONSTRUCTORS ///////////////////////////////////////////////
 
@@ -26,6 +27,12 @@ Asteroids::Asteroids(int argc, char *argv[])
 {
 	mLevel = 0;
 	mAsteroidCount = 0;
+
+	currentScore = 0;
+
+	gameStarted = false;
+	showingLeaderboard = false;
+	enteringName = false;
 }
 
 /** Destructor. */
@@ -99,6 +106,7 @@ void Asteroids::OnKeyPressed(uchar key, int x, int y)
 		if (key == 13)
 		{
 			enteringName = false;
+			showingLeaderboard = true;
 
 			int finalScore = currentScore;
 			highScores.push_back(HighScore(currentName, finalScore));
@@ -117,23 +125,25 @@ void Asteroids::OnKeyPressed(uchar key, int x, int y)
 		{
 			currentName.pop_back();
 		}
-		else if ((key>='A' && key <= 'Z') || (key >='a' && key<='z') || (key >='0' && key <= '9'))
+		else if (isalnum(key))
 		{
 			if (currentName.length() < 8)
-			{
 				currentName += key;
-			}
+			
 		}
-
-		std::string displayName = currentName;
-		while (displayName.length() < 8)
-			displayName += "_";
 
 		mEnterNameLabel->SetText("Enter Name: " + currentName);
 		return;
 	}
 
+	if (showingLeaderboard && key == 13)
+	{
+		showingLeaderboard = false;
+		mGameDisplay->GetContainer()->RemoveComponent(mLeaderboardLabel);
 
+
+		return;
+	}
 
 	if (!gameStarted && key == 13)
 	{
@@ -148,16 +158,6 @@ void Asteroids::OnKeyPressed(uchar key, int x, int y)
 		mLivesLabel->SetVisible(true);
 		mStartLabel->SetVisible(false);
 
-		return;
-	}
-
-	if (key == 13)
-	{
-		gameStarted = false;
-		enteringName = false;
-
-		Stop();
-		Start();
 		return;
 	}
 
@@ -248,6 +248,9 @@ void Asteroids::OnTimer(int value)
 	if (value == SHOW_GAME_OVER)
 	{
 		mGameOverLabel->SetVisible(true);
+
+		gameStarted = false;
+		mSpaceship = nullptr;
 
 		enteringName = true;
 		currentName = "";
@@ -384,6 +387,10 @@ void Asteroids::OnPlayerKilled(int lives_left)
 
 void Asteroids::ShowLeaderboard()
 {
+	showingLeaderboard = true;
+	mGameOverLabel->SetVisible(false);
+	mGameDisplay->GetContainer()->RemoveComponent(mEnterNameLabel);
+
 	std::string text = "RANK NAME SCORE\n\n";
 
 	for (size_t i = 0; i < highScores.size() && i < 5; i++)
