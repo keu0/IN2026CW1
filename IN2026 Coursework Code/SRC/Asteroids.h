@@ -80,6 +80,8 @@ private:
 	Player mPlayer;
 
 	std::vector<HighScore> highScores;
+
+	int currentScore = 0;
 };
 
 #endif

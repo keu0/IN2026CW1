@@ -100,7 +100,7 @@ void Asteroids::OnKeyPressed(uchar key, int x, int y)
 		{
 			enteringName = false;
 
-			int finalScore = mScoreKeeper.FireScoreChanged();
+			int finalScore = currentScore;
 			highScores.push_back(HighScore(currentName, finalScore));
 
 			std::sort(highScores.begin(), highScores.end(),
@@ -117,14 +117,22 @@ void Asteroids::OnKeyPressed(uchar key, int x, int y)
 		{
 			currentName.pop_back();
 		}
-		else if (key >= 32 && key <= 126)
+		else if ((key>='A' && key <= 'Z') || (key >='a' && key<='z') || (key >='0' && key <= '9'))
 		{
-			currentName += key;
+			if (currentName.length() < 8)
+			{
+				currentName += key;
+			}
 		}
+
+		std::string displayName = currentName;
+		while (displayName.length() < 8)
+			displayName += "_";
 
 		mEnterNameLabel->SetText("Enter Name: " + currentName);
 		return;
 	}
+
 
 
 	if (!gameStarted && key == 13)
@@ -143,9 +151,11 @@ void Asteroids::OnKeyPressed(uchar key, int x, int y)
 		return;
 	}
 
-	if (!enteringName && key == 'r')
+	if (key == 13)
 	{
 		gameStarted = false;
+		enteringName = false;
+
 		Stop();
 		Start();
 		return;
@@ -221,7 +231,7 @@ void Asteroids::OnObjectRemoved(GameWorld* world, shared_ptr<GameObject> object)
 
 void Asteroids::OnTimer(int value)
 {
-	if (!gameStarted) return; 
+	if (!gameStarted && value != SHOW_GAME_OVER) return; 
 	if (value == CREATE_NEW_PLAYER)
 	{
 		mSpaceship->Reset();
@@ -243,13 +253,13 @@ void Asteroids::OnTimer(int value)
 		currentName = "";
 
 		mEnterNameLabel = make_shared<GUILabel>("Enter Name: ");
-		mEnterNameLabel->SetHorizontalAlignment(GUIComponent::GUI_HALIGN_CENTER);
+		mEnterNameLabel->SetHorizontalAlignment(GUIComponent::GUI_HALIGN_LEFT);
 		mEnterNameLabel->SetVerticalAlignment(GUIComponent::GUI_VALIGN_MIDDLE);
 
 		shared_ptr<GUIComponent> comp =
 			static_pointer_cast<GUIComponent>(mEnterNameLabel);
 
-		mGameDisplay->GetContainer()->AddComponent(comp, GLVector2f(0.5f, 0.4f));
+		mGameDisplay->GetContainer()->AddComponent(comp, GLVector2f(0.3f, 0.4f));
 	}
 
 }
@@ -367,20 +377,23 @@ void Asteroids::OnPlayerKilled(int lives_left)
 	}
 	else
 	{
+		gameStarted = false;
 		SetTimer(500, SHOW_GAME_OVER);
 	}
 }
 
 void Asteroids::ShowLeaderboard()
 {
-	std::string text = "LEADERBOARD\n";
+	std::string text = "RANK NAME SCORE\n\n";
 
 	for (size_t i = 0; i < highScores.size() && i < 5; i++)
 	{
-		text += highScores[i].name + " - " + std::to_string(highScores[i].score) + "\n";
+		text += std::to_string(i + 1) + "      ";
+		text += highScores[i].name + "      ";
+		text += std::to_string(highScores[i].score) + "\n";
 	}
 
-	text += "\nPress R to Restart";
+	text += "\nPress Enter to Restart";
 
 	mLeaderboardLabel = make_shared<GUILabel>(text);
 	mLeaderboardLabel->SetHorizontalAlignment(GUIComponent::GUI_HALIGN_CENTER);
