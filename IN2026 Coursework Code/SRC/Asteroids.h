@@ -84,6 +84,8 @@ private:
 	std::vector<HighScore> highScores;
 
 	int currentScore = 0;
+
+	void ResetGame();
 };
 
 #endif

@@ -78,7 +78,6 @@ void Asteroids::Start()
 
 	//Create the GUI
 	CreateGUI();
-	CreateAsteroids(5);
 
 	// Add a player (watcher) to the game world
 	mGameWorld->AddListener(&mPlayer);
@@ -141,6 +140,7 @@ void Asteroids::OnKeyPressed(uchar key, int x, int y)
 		showingLeaderboard = false;
 		mGameDisplay->GetContainer()->RemoveComponent(mLeaderboardLabel);
 
+		ResetGame();
 
 		return;
 	}
@@ -231,7 +231,7 @@ void Asteroids::OnObjectRemoved(GameWorld* world, shared_ptr<GameObject> object)
 
 void Asteroids::OnTimer(int value)
 {
-	if (!gameStarted && value != SHOW_GAME_OVER) return; 
+	if (!gameStarted && value != SHOW_GAME_OVER && value != CREATE_NEW_PLAYER) return; 
 	if (value == CREATE_NEW_PLAYER)
 	{
 		mSpaceship->Reset();
@@ -380,6 +380,8 @@ void Asteroids::OnPlayerKilled(int lives_left)
 	}
 	else
 	{
+		if (!gameStarted) return;
+
 		gameStarted = false;
 		SetTimer(500, SHOW_GAME_OVER);
 	}
@@ -424,6 +426,24 @@ shared_ptr<GameObject> Asteroids::CreateExplosion()
 	return explosion;
 }
 
+void Asteroids::ResetGame()
+{
+	mLevel = 0;
+	mAsteroidCount = 0;
+	currentScore = 0;
 
+	gameStarted = false;
+	showingLeaderboard = false;
+	enteringName = false;
+
+	mSpaceship = nullptr;
+
+	mScoreLabel->SetText("Score: 0");
+	mLivesLabel->SetText("Lives: 3");
+
+	mStartLabel->SetVisible(true);
+	mScoreLabel->SetVisible(false);
+	mLivesLabel->SetVisible(false);
+}
 
 
