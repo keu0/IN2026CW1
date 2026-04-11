@@ -14,6 +14,7 @@ public:
 	ScoreKeeper() { mScore = 0; }
 	virtual ~ScoreKeeper() {}
 
+	void ResetScore() { mScore = 0; }
 	void OnWorldUpdated(GameWorld* world) {}
 	void OnObjectAdded(GameWorld* world, shared_ptr<GameObject> object) {}
 

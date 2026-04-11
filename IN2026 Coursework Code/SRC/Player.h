@@ -14,6 +14,7 @@ public:
 	Player() { mLives = 3; }
 	virtual ~Player() {}
 
+	void ResetLives() { mLives = 3; }
 	void OnWorldUpdated(GameWorld* world) {}
 
 	void OnObjectAdded(GameWorld* world, shared_ptr<GameObject> object) {}
