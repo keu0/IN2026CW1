@@ -14,10 +14,50 @@
 #include <iostream>
 #include <algorithm>
 #include <vector>
+#include <fstream>
 #include "HighScore.h"
+
+static const std::string SCORES_FILE = "highscores.txt";
 
 bool gameStarted = false;
 bool showingLeaderboard = false;
+
+
+/** Destructor. */
+Asteroids::~Asteroids(void)
+{
+}
+
+void Asteroids::SaveHighScores()
+{
+	std::ofstream file(SCORES_FILE);
+	if (!file.is_open()) return;
+
+	for (size_t i = 0; i < highScores.size() && i < 10; i++)
+	{
+		file << highScores[i].name << " " << highScores[i].score << "\n";
+	}
+}
+
+void Asteroids::LoadHighScores()
+{
+	highScores.clear();
+	std::ifstream file(SCORES_FILE);
+	if (!file.is_open()) return;
+
+	std::string name;
+	int score;
+	while (file >> name >> score)
+	{
+		highScores.push_back(HighScore(name, score));
+	}
+
+	std::sort(highScores.begin(), highScores.end(),
+		[](const HighScore& a, const HighScore& b)
+		{
+			return a.score > b.score;
+		});
+}
 
 // PUBLIC INSTANCE CONSTRUCTORS ///////////////////////////////////////////////
 
@@ -33,12 +73,11 @@ Asteroids::Asteroids(int argc, char *argv[])
 	gameStarted = false;
 	showingLeaderboard = false;
 	enteringName = false;
+
+	// Load any previously saved scores from disk
+	LoadHighScores();
 }
 
-/** Destructor. */
-Asteroids::~Asteroids(void)
-{
-}
 
 // PUBLIC INSTANCE METHODS ////////////////////////////////////////////////////
 
@@ -127,7 +166,7 @@ void Asteroids::OnKeyPressed(uchar key, int x, int y)
 		else if (isalnum(key))
 		{
 			if (currentName.length() < 8)
-				currentName += key;
+				currentName += (char)toupper(key);
 			
 		}
 
@@ -231,7 +270,9 @@ void Asteroids::OnObjectRemoved(GameWorld* world, shared_ptr<GameObject> object)
 
 void Asteroids::OnTimer(int value)
 {
-	if (!gameStarted && value != SHOW_GAME_OVER && value != CREATE_NEW_PLAYER) return; 
+	if (!gameStarted && value != SHOW_GAME_OVER && value != CREATE_NEW_PLAYER) 
+		return;
+
 	if (value == CREATE_NEW_PLAYER)
 	{
 		mSpaceship->Reset();
@@ -256,7 +297,7 @@ void Asteroids::OnTimer(int value)
 		currentName = "";
 
 		mEnterNameLabel = make_shared<GUILabel>("Enter Name: ");
-		mEnterNameLabel->SetHorizontalAlignment(GUIComponent::GUI_HALIGN_LEFT);
+		mEnterNameLabel->SetHorizontalAlignment(GUIComponent::GUI_HALIGN_CENTER);
 		mEnterNameLabel->SetVerticalAlignment(GUIComponent::GUI_VALIGN_MIDDLE);
 
 		shared_ptr<GUIComponent> comp =
@@ -352,6 +393,7 @@ void Asteroids::CreateGUI()
 
 void Asteroids::OnScoreChanged(int score)
 {
+	currentScore = score;	
 	// Format the score message using an string-based stream
 	std::ostringstream msg_stream;
 	msg_stream << "Score: " << score;
@@ -393,30 +435,34 @@ void Asteroids::ShowLeaderboard()
 	mGameOverLabel->SetVisible(false);
 	mGameDisplay->GetContainer()->RemoveComponent(mEnterNameLabel);
 
-	std::string text = "RANK NAME SCORE\n\n";
+	// Build leaderboard text
+	std::string text = "== HIGH SCORES ==\n\n";
+	text += "RANK  NAME      SCORE\n\n";
 
 	for (size_t i = 0; i < highScores.size() && i < 5; i++)
 	{
-		text += std::to_string(i + 1) + "      ";
-		text += highScores[i].name + "      ";
-		text += std::to_string(highScores[i].score) + "\n";
+		std::ostringstream row;
+		row << (i + 1) << "     ";
+		// Pad name to 8 chars for alignment
+		std::string paddedName = highScores[i].name;
+		while (paddedName.length() < 8) paddedName += " ";
+		row << paddedName << "  " << highScores[i].score << "\n";
+		text += row.str();
 	}
 
-	text += "\nPress Enter to Restart";
+	text += "\nPress Enter to Play Again";
 
 	mLeaderboardLabel = make_shared<GUILabel>(text);
 	mLeaderboardLabel->SetHorizontalAlignment(GUIComponent::GUI_HALIGN_CENTER);
 	mLeaderboardLabel->SetVerticalAlignment(GUIComponent::GUI_VALIGN_MIDDLE);
 
-	shared_ptr<GUIComponent> comp =
-		static_pointer_cast<GUIComponent>(mLeaderboardLabel);
-
-	mGameDisplay->GetContainer()->AddComponent(comp, GLVector2f(0.5f, 0.6f));
+	mGameDisplay->GetContainer()->AddComponent(
+		static_pointer_cast<GUIComponent>(mLeaderboardLabel), GLVector2f(0.5f, 0.5f));
 }
 
 shared_ptr<GameObject> Asteroids::CreateExplosion()
 {
-	Animation *anim_ptr = AnimationManager::GetInstance().GetAnimationByName("explosion");
+	Animation* anim_ptr = AnimationManager::GetInstance().GetAnimationByName("explosion");
 	shared_ptr<Sprite> explosion_sprite =
 		make_shared<Sprite>(anim_ptr->GetWidth(), anim_ptr->GetHeight(), anim_ptr);
 	explosion_sprite->SetLoopAnimation(false);
@@ -431,6 +477,7 @@ void Asteroids::ResetGame()
 	mLevel = 0;
 	mAsteroidCount = 0;
 	currentScore = 0;
+	currentName = "";
 
 	gameStarted = false;
 	showingLeaderboard = false;
@@ -438,12 +485,18 @@ void Asteroids::ResetGame()
 
 	mSpaceship = nullptr;
 
+	mScoreKeeper.ResetScore();
+	mPlayer.ResetLives();
+
 	mScoreLabel->SetText("Score: 0");
+	mScoreLabel->SetVisible(false);
+
 	mLivesLabel->SetText("Lives: 3");
+	mLivesLabel->SetVisible(false);
+
+	mGameOverLabel->SetVisible(false);
 
 	mStartLabel->SetVisible(true);
-	mScoreLabel->SetVisible(false);
-	mLivesLabel->SetVisible(false);
 }
 
 

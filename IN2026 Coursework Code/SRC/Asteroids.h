@@ -85,6 +85,8 @@ private:
 
 	int currentScore = 0;
 
+	void SaveHighScores();
+	void LoadHighScores();
 	void ResetGame();
 };
 
