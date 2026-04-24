@@ -29,11 +29,6 @@ Asteroids::Asteroids(int argc, char *argv[])
 	mGameStarted = false;
 	mMenuState = MENU_MAIN;
 	mDifficulty = 0;
-	mCustomExtraLife  = true;
-	mCustomSpread     = true;
-	mCustomRing       = true;
-	mCustomBlackHoles = false;
-	mCustomMilestones = true;
 	mHasPowerUps   = true;
 	mHasBlackHoles = false;
 	mHasMilestones = true;
@@ -283,10 +278,9 @@ void Asteroids::OnObjectRemoved(GameWorld* world, shared_ptr<GameObject> object)
 		if (mHasPowerUps && !eatenByBlackHole && rand() % 10 < 3)
 		{
 			std::vector<PowerUp::Type> enabled;
-			bool anyCustom = (mDifficulty == 3);
-			if ((!anyCustom || mCustomExtraLife) && mPlayer.GetLives() < 5) enabled.push_back(PowerUp::EXTRA_LIFE);
-			if (!anyCustom || mCustomSpread)    enabled.push_back(PowerUp::SHOOT_SPREAD);
-			if (!anyCustom || mCustomRing)      enabled.push_back(PowerUp::RING_ATTACK);
+			if (mPlayer.GetLives() < 5) enabled.push_back(PowerUp::EXTRA_LIFE);
+			enabled.push_back(PowerUp::SHOOT_SPREAD);
+			enabled.push_back(PowerUp::RING_ATTACK);
 			if (enabled.empty()) return;
 			PowerUp::Type puType = enabled[rand() % enabled.size()];
 
@@ -506,18 +500,9 @@ void Asteroids::StartGame()
 
 	ShowMenuState(STATE_PLAYING);
 
-	if (mDifficulty == 3)
-	{
-		mHasPowerUps   = mCustomExtraLife || mCustomSpread || mCustomRing;
-		mHasBlackHoles = mCustomBlackHoles;
-		mHasMilestones = mCustomMilestones;
-	}
-	else
-	{
-		mHasPowerUps   = (mDifficulty <= 1);
-		mHasBlackHoles = (mDifficulty >= 1);
-		mHasMilestones = (mDifficulty <= 1);
-	}
+	mHasPowerUps   = (mDifficulty <= 1);
+	mHasBlackHoles = (mDifficulty >= 1);
+	mHasMilestones = (mDifficulty <= 1);
 
 	mGameStarted = true;
 	mGameWorld->AddObject(CreateSpaceship());
@@ -707,72 +692,6 @@ void Asteroids::CreateGUI()
 	mDiffBackLabel->SetVisible(false);
 	mGameDisplay->GetContainer()->AddComponent(
 		static_pointer_cast<GUIComponent>(mDiffBackLabel), GLVector2f(0.5f, 0.14f));
-
-	// ---- CUSTOM DIFFICULTY MENU ----
-
-	mCustTitleLabel = make_shared<GUILabel>("CUSTOM DIFFICULTY");
-	mCustTitleLabel->SetHorizontalAlignment(GUIComponent::GUI_HALIGN_CENTER);
-	mCustTitleLabel->SetVerticalAlignment(GUIComponent::GUI_VALIGN_MIDDLE);
-	mCustTitleLabel->SetColor(GLVector3f(0.8f, 0.5f, 1.0f));
-	mCustTitleLabel->SetVisible(false);
-	mGameDisplay->GetContainer()->AddComponent(
-		static_pointer_cast<GUIComponent>(mCustTitleLabel), GLVector2f(0.5f, 0.88f));
-
-	mCustExtraLifeLabel = make_shared<GUILabel>("1 - Extra Life:   [ON ]");
-	mCustExtraLifeLabel->SetHorizontalAlignment(GUIComponent::GUI_HALIGN_CENTER);
-	mCustExtraLifeLabel->SetVerticalAlignment(GUIComponent::GUI_VALIGN_MIDDLE);
-	mCustExtraLifeLabel->SetColor(GLVector3f(0.3f, 1.0f, 0.3f));
-	mCustExtraLifeLabel->SetVisible(false);
-	mGameDisplay->GetContainer()->AddComponent(
-		static_pointer_cast<GUIComponent>(mCustExtraLifeLabel), GLVector2f(0.5f, 0.76f));
-
-	mCustSpreadLabel = make_shared<GUILabel>("2 - Spread Shot:  [ON ]");
-	mCustSpreadLabel->SetHorizontalAlignment(GUIComponent::GUI_HALIGN_CENTER);
-	mCustSpreadLabel->SetVerticalAlignment(GUIComponent::GUI_VALIGN_MIDDLE);
-	mCustSpreadLabel->SetColor(GLVector3f(0.0f, 0.9f, 1.0f));
-	mCustSpreadLabel->SetVisible(false);
-	mGameDisplay->GetContainer()->AddComponent(
-		static_pointer_cast<GUIComponent>(mCustSpreadLabel), GLVector2f(0.5f, 0.65f));
-
-	mCustRingLabel = make_shared<GUILabel>("3 - Ring Attack:  [ON ]");
-	mCustRingLabel->SetHorizontalAlignment(GUIComponent::GUI_HALIGN_CENTER);
-	mCustRingLabel->SetVerticalAlignment(GUIComponent::GUI_VALIGN_MIDDLE);
-	mCustRingLabel->SetColor(GLVector3f(1.0f, 0.6f, 0.1f));
-	mCustRingLabel->SetVisible(false);
-	mGameDisplay->GetContainer()->AddComponent(
-		static_pointer_cast<GUIComponent>(mCustRingLabel), GLVector2f(0.5f, 0.54f));
-
-	mCustBHLabel = make_shared<GUILabel>("4 - Black Holes:  [OFF]");
-	mCustBHLabel->SetHorizontalAlignment(GUIComponent::GUI_HALIGN_CENTER);
-	mCustBHLabel->SetVerticalAlignment(GUIComponent::GUI_VALIGN_MIDDLE);
-	mCustBHLabel->SetColor(GLVector3f(0.5f, 0.5f, 1.0f));
-	mCustBHLabel->SetVisible(false);
-	mGameDisplay->GetContainer()->AddComponent(
-		static_pointer_cast<GUIComponent>(mCustBHLabel), GLVector2f(0.5f, 0.43f));
-
-	mCustMilestoneLabel = make_shared<GUILabel>("5 - Milestones:   [ON ]");
-	mCustMilestoneLabel->SetHorizontalAlignment(GUIComponent::GUI_HALIGN_CENTER);
-	mCustMilestoneLabel->SetVerticalAlignment(GUIComponent::GUI_VALIGN_MIDDLE);
-	mCustMilestoneLabel->SetColor(GLVector3f(1.0f, 1.0f, 0.3f));
-	mCustMilestoneLabel->SetVisible(false);
-	mGameDisplay->GetContainer()->AddComponent(
-		static_pointer_cast<GUIComponent>(mCustMilestoneLabel), GLVector2f(0.5f, 0.32f));
-
-	mCustStartLabel = make_shared<GUILabel>("Enter / Space - Confirm & Return to Menu");
-	mCustStartLabel->SetHorizontalAlignment(GUIComponent::GUI_HALIGN_CENTER);
-	mCustStartLabel->SetVerticalAlignment(GUIComponent::GUI_VALIGN_MIDDLE);
-	mCustStartLabel->SetColor(GLVector3f(1.0f, 1.0f, 0.5f));
-	mCustStartLabel->SetVisible(false);
-	mGameDisplay->GetContainer()->AddComponent(
-		static_pointer_cast<GUIComponent>(mCustStartLabel), GLVector2f(0.5f, 0.19f));
-
-	mCustBackLabel = make_shared<GUILabel>("Tab - Back to Difficulty");
-	mCustBackLabel->SetHorizontalAlignment(GUIComponent::GUI_HALIGN_CENTER);
-	mCustBackLabel->SetVerticalAlignment(GUIComponent::GUI_VALIGN_MIDDLE);
-	mCustBackLabel->SetColor(GLVector3f(0.6f, 0.6f, 0.6f));
-	mCustBackLabel->SetVisible(false);
-	mGameDisplay->GetContainer()->AddComponent(
-		static_pointer_cast<GUIComponent>(mCustBackLabel), GLVector2f(0.5f, 0.09f));
 
 	// ---- INSTRUCTIONS LABELS ----
 
@@ -990,15 +909,6 @@ void Asteroids::HideAllLabels()
 	mDiffItem2Label->SetVisible(false);
 	mDiffItem3Label->SetVisible(false);
 	mDiffBackLabel->SetVisible(false);
-
-	mCustTitleLabel->SetVisible(false);
-	mCustExtraLifeLabel->SetVisible(false);
-	mCustSpreadLabel->SetVisible(false);
-	mCustRingLabel->SetVisible(false);
-	mCustBHLabel->SetVisible(false);
-	mCustMilestoneLabel->SetVisible(false);
-	mCustStartLabel->SetVisible(false);
-	mCustBackLabel->SetVisible(false);
 
 	mInstrTitleLabel->SetVisible(false);
 	mInstrLine1Label->SetVisible(false);

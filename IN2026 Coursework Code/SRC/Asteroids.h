@@ -43,7 +43,6 @@ private:
 	enum MenuState {
 		MENU_MAIN,
 		MENU_DIFFICULTY,
-		MENU_CUSTOM,
 		MENU_INSTRUCTIONS,
 		MENU_HIGHSCORES,
 		MENU_ENTER_TAG,
@@ -58,12 +57,7 @@ private:
 	// Game state
 	bool mGameStarted;
 	MenuState mMenuState;
-	int  mDifficulty;        // 0=Easy, 1=Normal, 2=Hard, 3=Custom
-	bool mCustomExtraLife;
-	bool mCustomSpread;
-	bool mCustomRing;
-	bool mCustomBlackHoles;
-	bool mCustomMilestones;
+	int  mDifficulty;        // 0=Easy, 1=Normal, 2=Hard
 	bool mHasPowerUps;       // computed at StartGame
 	bool mHasBlackHoles;
 	bool mHasMilestones;
@@ -93,16 +87,6 @@ private:
 	shared_ptr<GUILabel> mDiffItem2Label;
 	shared_ptr<GUILabel> mDiffItem3Label;
 	shared_ptr<GUILabel> mDiffBackLabel;
-
-	// Custom difficulty menu
-	shared_ptr<GUILabel> mCustTitleLabel;
-	shared_ptr<GUILabel> mCustExtraLifeLabel;
-	shared_ptr<GUILabel> mCustSpreadLabel;
-	shared_ptr<GUILabel> mCustRingLabel;
-	shared_ptr<GUILabel> mCustBHLabel;
-	shared_ptr<GUILabel> mCustMilestoneLabel;
-	shared_ptr<GUILabel> mCustStartLabel;
-	shared_ptr<GUILabel> mCustBackLabel;
 
 	// Instructions labels
 	shared_ptr<GUILabel> mInstrTitleLabel;
