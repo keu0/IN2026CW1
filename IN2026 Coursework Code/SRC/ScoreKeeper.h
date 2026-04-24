@@ -20,12 +20,12 @@ public:
 	void OnWorldUpdated(GameWorld* world) {}
 	void OnObjectAdded(GameWorld* world, shared_ptr<GameObject> object) {}
 
-	void OnObjectRemoved(GameWorld* world, shared_ptr<GameObject> object)
+	void OnObjectRemoved(GameWorld* world, shared_ptr<GameObject> object) {}
+
+	void AddScore(int pts)
 	{
-		if (object->GetType() == GameObjectType("Asteroid")) {
- 			mScore += 10;
-			FireScoreChanged();
-		}
+		mScore += pts;
+		FireScoreChanged();
 	}
 
 	void AddListener(shared_ptr<IScoreListener> listener)

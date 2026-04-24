@@ -262,9 +262,8 @@ void Asteroids::OnObjectRemoved(GameWorld* world, shared_ptr<GameObject> object)
 		if (mAsteroidCount <= 0)
 			SetTimer(500, START_NEXT_LEVEL);
 
-		// Skip power-ups if asteroid was eaten by a black hole
+		// Check if this asteroid was consumed by a black hole (not destroyed by the player)
 		bool eatenByBlackHole = false;
-		if (mHasPowerUps)
 		{
 			GLVector3f aPos = object->GetPosition();
 			GameObjectList all = mGameWorld->GetObjects();
@@ -276,6 +275,10 @@ void Asteroids::OnObjectRemoved(GameWorld* world, shared_ptr<GameObject> object)
 				if (dx * dx + dy * dy < 15.0f * 15.0f) { eatenByBlackHole = true; break; }
 			}
 		}
+
+		// Only award points if the player destroyed it
+		if (!eatenByBlackHole)
+			mScoreKeeper.AddScore(10);
 
 		if (mHasPowerUps && !eatenByBlackHole && rand() % 10 < 3)
 		{
